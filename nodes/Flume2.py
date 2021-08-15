@@ -1,8 +1,5 @@
 
-try:
-    import polyinterface
-except ImportError:
-    import pgc_interface as polyinterface
+from udi_interface import Node,LOGGER
 import sys
 import time
 import urllib3
@@ -18,15 +15,17 @@ def myfloat(value, prec=4):
         return 0
     return round(float(value), prec)
 
-class Flume2Node(polyinterface.Node):
+class Flume2Node(Node):
 
     def __init__(self, controller, primary, address, name, device):
-        super(Flume2Node, self).__init__(controller, primary, address, name)
+        super(Flume2Node, self).__init__(controller.poly, primary, address, name)
         self.device = device
         self.device_id = device['id']
         self.lpfx = '%s:%s' % (address,name)
+        controller.poly.subscribe(controller.poly.START,                  self.handler_start, address) 
+        controller.poly.subscribe(controller.poly.POLL,                   self.handler_poll)
 
-    def start(self):
+    def handler_start(self):
         self.setDriver('ST', 1)
         self.session = Session()
         try:
@@ -44,11 +43,9 @@ class Flume2Node(polyinterface.Node):
         )
         self.update()
 
-    def shortPoll(self):
-        pass
-
-    def longPoll(self):
-        self.update()
+    def handler_poll(self, polltype):
+        if polltype == 'longPoll':
+            self.update()
 
     def update(self):
         LOGGER.debug("Values={}".format(self.flume.values))
