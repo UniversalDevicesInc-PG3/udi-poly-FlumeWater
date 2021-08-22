@@ -1,4 +1,4 @@
-# Flume Water Polyglot Node Server
+# Flume Water Polyglot V3 Node Server
 
 ## Installation
 
@@ -20,6 +20,8 @@ GV7 - Usage month to date
 
 ## Revision History
 
+- 3.0.0: 08/21/2021
+  - First Polyglot V3 release
 - 2.0.7: 03/10/2021
   - Add --upgrade to pip3 install
 - 2.0.6:

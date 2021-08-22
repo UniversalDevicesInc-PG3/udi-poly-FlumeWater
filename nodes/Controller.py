@@ -19,13 +19,8 @@ TYPE_TO_NAME = {1: 'Hub', 2: 'Sensor'}
 #LOG_HANDLER.set_log_format('%(asctime)s %(threadName)-10s %(name)-18s %(levelname)-8s %(module)s:%(funcName)s: %(message)s')
 
 class Controller(Node):
-    """
-    The Controller Class is the primary node from an ISY perspective. It is a Superclass
-    of polyinterface.Node so all methods from polyinterface.Node are available to this
-    class as well.
-    """
     def __init__(self, poly, primary, address, name):
-        super(Controller, self).__init__(polyglot)
+        super(Controller, self).__init__(poly, primary, address, name)
         self.hb = 0
         self._mydrivers = {}
         self.Notices         = Custom(poly, 'notices')
@@ -36,7 +31,6 @@ class Controller(Node):
         self.TypedData       = Custom(poly, 'customtypeddata')
         poly.subscribe(poly.START,                  self.handler_start, address) 
         poly.subscribe(poly.POLL,                   self.handler_poll)
-        poly.subscribe(poly.ADDNODEDONE,            self.handler_add_node_done)
         poly.subscribe(poly.CUSTOMPARAMS,           self.handler_custom_params)
         poly.subscribe(poly.LOGLEVEL,               self.handler_log_level)
         poly.ready()
@@ -46,21 +40,17 @@ class Controller(Node):
         #serverdata = self.poly._get_server_data()
         LOGGER.info(f"Started Airscape NodeServer {self.poly.serverdata['version']}")
         #LOGGER.debug('ST=%s',self.getDriver('ST'))
+        self.Notices.clear()
         self.setDriver('ST', 1)
-        self.setDriver('GV2', 0)
+        self.setDriver('GV1', 0)
         self.heartbeat(0)
-        self.params_ok = self.check_params()
-        #self.set_debug_level(self.getDriver('GV1'))
-        if self.params_ok:
-            if self.connect():
-                self.discover()
+        #self.handler_custom_params()
 
     def handler_poll(self, polltype):
         if polltype == 'longPoll':
             self.heartbeat()
 
     def query(self,command=None):
-        self.check_params()
         nodes = self.poly.getNodes()
         for node in nodes:
             self.nodes[node].reportDrivers()
@@ -94,8 +84,10 @@ class Controller(Node):
             LOGGER.info("Setting basic config to WARNING...")
             LOG_HANDLER.set_basic_config(True,logging.WARNING)
 
-    def handler_custom_params(self):
+    def handler_custom_params(self,params):
+        LOGGER.info(f'params={params}')
         self.Notices.clear()
+        self.Parameters.load(params)
 
         default_username = "YourUserName"
         default_password = "YourPassword"
@@ -106,62 +98,63 @@ class Controller(Node):
 
         if self.Parameters['username'] is None:
             self.Parameters['username'] = default_username
-            LOGGER.error('check_params: username not defined in customParams, please add it.  Using {}'.format(self.username))
-            add_param = True
 
         if self.Parameters['password'] is None:
             self.Parameters['password'] = default_password
-            LOGGER.error('check_params: password not defined in customParams, please add it.  Using {}'.format(self.password))
-            add_param = True
 
         if self.Parameters['client_id'] is None:
             self.Parameters['client_id'] = default_client_id
-            LOGGER.error('check_params: client_id not defined in customParams, please add it.  Using {}'.format(self.client_id))
-            add_param = True
 
         if self.Parameters['client_secret'] is None:
             self.Parameters['client_secret'] = default_client_secret
-            LOGGER.error('check_params: client_secret not defined in customParams, please add it.  Using {}'.format(self.client_secret))
-            add_param = True
 
         if self.Parameters['current_interval_minutes'] is None:
             self.Parameters['current_interval_minutes'] = default_current_interval_minutes
-            add_param = True
 
-        self.username = self.Parameters['username']
-        self.password = self.Parameters['password']
-        self.client_id = self.Parameters['client_id']
-        self.client_secret = self.Parameters['client_secret']
-        self.current_interval_minutes = self.Parameters['current_interval_minutes']
+        params_ok = True
+        if self.Parameters['username'] == default_username:
+            LOGGER.error(f"check_params: username not defined in customParams, please add it.  Using {self.Parameters['username']}")
+            params_ok = False
+        if self.Parameters['password'] == default_password:
+            LOGGER.error(f"check_params: password not defined in customParams, please add it.  Using {self.Parameters['password']}")
+            params_ok = False
+        if self.Parameters['client_id'] == default_client_id:
+            LOGGER.error(f"check_params: client_id not defined in customParams, please add it.  Using {self.Parameters['client_id']}")
+            params_ok = False
+        if self.Parameters['client_secret'] == default_client_secret:
+            LOGGER.error(f"check_params: client_secret not defined in customParams, please add it.  Using {self.Parameters['client_secret']}")
+            params_ok = False
 
-        # Add a notice if they need to change the username/password from the default.
-        if self.username == default_username or self.password == default_password or self.client_id == default_client_id or self.client_secret == default_client_secret:
+        # Connect or send a message
+        if params_ok:
+            if self.connect():
+                self.discover()            
+            return True
+        else:
             # This doesn't pass a key to test the old way.
-            msg = 'Please set your information in configuration page, and restart this nodeserver'
+            msg = 'Please set your information in configuration page'
             LOGGER.error(msg)
             self.Notices['config'] = msg
             return False
-        else:
-            return True
 
     def connect(self):
         self.session = Session()
         LOGGER.info("Connecting to Flume...")
-        self.setDriver('GV2',1)
+        self.setDriver('GV1',1)
         try:
             self.auth = pyflume.FlumeAuth(
-                self.username, self.password, self.client_id, self.client_secret, http_session=self.session
+                self.Parameters['username'], self.Parameters['password'], self.Parameters['client_id'], self.Parameters['client_secret'], http_session=self.session
             )
-            self.setDriver('GV2',2)
+            self.setDriver('GV1',2)
             LOGGER.info("Flume Auth={}".format(self.auth))
         except Exception as ex:
-            self.setDriver('GV2',3)
+            self.setDriver('GV1',3)
             msg = 'Error from PyFlue: {}'.format(ex)
             LOGGER.error(msg)
             self.Notices['auth'] = msg
             return False
         except:
-            self.setDriver('GV2',3)
+            self.setDriver('GV1',3)
             msg = 'Unknown Error from PyFlue: {}'.format(ex)
             LOGGER.error(msg)
             self.Notices['auth'] = msg
@@ -173,7 +166,7 @@ class Controller(Node):
         return True
 
     def discover(self, *args, **kwargs):
-        cst = int(self.getDriver('GV2'))
+        cst = int(self.getDriver('GV1'))
         if cst == 2:
             for device in self.flume_devices.device_list:
                 if device[KEY_DEVICE_TYPE] <= 2:

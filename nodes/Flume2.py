@@ -7,8 +7,6 @@ import pyflume
 from datetime import timedelta
 from requests import Session
 
-LOGGER = polyinterface.LOGGER
-
 def myfloat(value, prec=4):
     """ round and return float """
     if value is None:
@@ -19,6 +17,7 @@ class Flume2Node(Node):
 
     def __init__(self, controller, primary, address, name, device):
         super(Flume2Node, self).__init__(controller.poly, primary, address, name)
+        self.controller = controller
         self.device = device
         self.device_id = device['id']
         self.lpfx = '%s:%s' % (address,name)
@@ -29,9 +28,9 @@ class Flume2Node(Node):
         self.setDriver('ST', 1)
         self.session = Session()
         try:
-            self.scan_interval = timedelta(minutes=int(self.controller.current_interval_minutes))
+            self.scan_interval = timedelta(minutes=int(self.controller.Parameters['current_interval_minutes']))
         except:
-            LOGGER.error("current_interval_minutes configuration parameter {} is not an integer? Using 1.".format(self.controller.current_interval_minutes))
+            LOGGER.error("current_interval_minutes configuration parameter {} is not an integer? Using 1.".format(self.controller.Parameters['current_interval_minutes']))
             self.scan_interval = timedelta(minutes=int(1))
         LOGGER.info("Using scan interval: {}".format(self.scan_interval))
         self.flume = pyflume.FlumeData(

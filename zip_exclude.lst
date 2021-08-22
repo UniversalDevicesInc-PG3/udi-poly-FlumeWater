@@ -1,0 +1,7 @@
+__pycache__/*
+*/__pycache__/*
+logs/*
+*.pyc
+zip_exclude.lst
+FlumeWater.zip
+Makefile
