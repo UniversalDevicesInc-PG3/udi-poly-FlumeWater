@@ -20,6 +20,8 @@ GV7 - Usage month to date
 
 ## Revision History
 
+- 3.0.1: 11/03/2021
+  - Log levels all working with new methods
 - 3.0.0: 08/21/2021
   - First Polyglot V3 release
 - 2.0.7: 03/10/2021

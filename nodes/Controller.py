@@ -33,6 +33,7 @@ class Controller(Node):
         poly.subscribe(poly.POLL,                   self.handler_poll)
         poly.subscribe(poly.CUSTOMPARAMS,           self.handler_custom_params)
         poly.subscribe(poly.LOGLEVEL,               self.handler_log_level)
+        poly.subscribe(poly.CONFIGDONE,             self.handler_config_done)
         poly.ready()
         poly.addNode(self)
 
@@ -45,6 +46,11 @@ class Controller(Node):
         self.setDriver('GV1', 0)
         self.heartbeat(0)
         #self.handler_custom_params()
+
+    def handler_config_done(self,data):
+        LOGGER.debug(f'enter: data={data}')
+        self.poly.addLogLevel('DEBUG_MODULES',9,'Debug + Modules')
+        LOGGER.debug(f'exit')
 
     def handler_poll(self, polltype):
         if polltype == 'longPoll':
@@ -73,11 +79,9 @@ class Controller(Node):
             self.reportCmd("DOF",2)
             self.hb = 0
 
-    def handler_log_level(self,level_name):
-        LOGGER.info(f'level={level_name}')
-        rh = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO, 'WARNING': logging.WARNING, 'ERROR': logging.ERROR}
-        level=rh[level_name]
-        if level < 10:
+    def handler_log_level(self,level):
+        LOGGER.info(f'level={level}')
+        if level['level'] < 10:
             LOGGER.info("Setting basic config to DEBUG...")
             LOG_HANDLER.set_basic_config(True,logging.DEBUG)
         else:
