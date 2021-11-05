@@ -47,8 +47,8 @@ class Controller(Node):
         self.heartbeat(0)
         #self.handler_custom_params()
 
-    def handler_config_done(self,data):
-        LOGGER.debug(f'enter: data={data}')
+    def handler_config_done(self):
+        LOGGER.debug(f'enter')
         self.poly.addLogLevel('DEBUG_MODULES',9,'Debug + Modules')
         LOGGER.debug(f'exit')
 

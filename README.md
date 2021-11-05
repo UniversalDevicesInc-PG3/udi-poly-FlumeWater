@@ -20,6 +20,8 @@ GV7 - Usage month to date
 
 ## Revision History
 
+- 3.0.2: 11/05/2021
+  - Works with udi_interface 3.0.22
 - 3.0.1: 11/03/2021
   - Log levels all working with new methods
 - 3.0.0: 08/21/2021
