@@ -3,6 +3,9 @@
     <editor id="bool">
         <range uom="2" subset="0,1" />
     </editor>
+    <editor id="cst">
+      <range uom="25" subset="0,1,2" nls="CST"/>
+    </editor>
     <editor id="GALLONS">
         <range uom="69" min="0" max="2147483647" prec="4"/>
     </editor>

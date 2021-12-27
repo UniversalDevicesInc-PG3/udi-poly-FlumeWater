@@ -19,7 +19,9 @@ GV6 - Usage week to date
 GV7 - Usage month to date
 
 ## Revision History
-
+- 3.0.3: 12/26/2021
+  - Added conn_status to Controller so ST is properly set
+    - Existing users will need to delete the controller node in the Polyglot UI and restart the NS
 - 3.0.2: 11/05/2021
   - Works with udi_interface 3.0.22
 - 3.0.1: 11/03/2021

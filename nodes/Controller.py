@@ -35,7 +35,7 @@ class Controller(Node):
         poly.subscribe(poly.LOGLEVEL,               self.handler_log_level)
         poly.subscribe(poly.CONFIGDONE,             self.handler_config_done)
         poly.ready()
-        poly.addNode(self)
+        self.poly.addNode(self, conn_status='ST')
 
     def handler_start(self):
         #serverdata = self.poly._get_server_data()
@@ -201,6 +201,6 @@ class Controller(Node):
         'DISCOVER': discover,
     }
     drivers = [
-        {'driver': 'ST',  'value': 1, 'uom':  2},
+        {'driver': 'ST',  'value': 1, 'uom':  25},
         {'driver': 'GV1', 'value':  0, 'uom': 25}, # Authorization status
     ]

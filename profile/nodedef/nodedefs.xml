@@ -4,8 +4,8 @@
     <nodeDef id="controller" nls="ctl">
         <editors />
         <sts>
-			<st id="ST" editor="bool" />
-      <st id="GV1" editor="I_AUTH" />
+			<st id="ST" editor="cst" />
+            <st id="GV1" editor="I_AUTH" />
 		</sts>
         <cmds>
             <sends>

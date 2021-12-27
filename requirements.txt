@@ -1,2 +1,2 @@
-udi_interface>=3.0.22
+udi_interface>=3.0.26
 pyflume

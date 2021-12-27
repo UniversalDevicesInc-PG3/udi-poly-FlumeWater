@@ -6,6 +6,11 @@ CMD-ctl-DISCOVER-NAME = Discover
 CMD-ctl-SET_DM-NAME = Set Logger Level
 ST-ctl-GV1-NAME = Authorization Status
 
+# Controller Status
+CST-0 = Disconnected
+CST-1 = Connected
+CST-2 = Failed
+
 # Debug/Logger Modes
 CDM-9 = Debug + Modules
 CDM-10 = Debug
