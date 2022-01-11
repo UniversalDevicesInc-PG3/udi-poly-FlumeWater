@@ -5,7 +5,7 @@ Get the polyinterface objects we need.  Currently Polyglot Cloud uses
 a different Python module which doesn't have the new LOG_HANDLER functionality
 """
 from udi_interface import Node,LOGGER,Custom,LOG_HANDLER
-import logging
+import logging,os,markdown2
 from requests import Session
 import pyflume
 # My Nodes
@@ -25,7 +25,7 @@ class Controller(Node):
         self._mydrivers = {}
         self.Notices         = Custom(poly, 'notices')
         self.Data            = Custom(poly, 'customdata')
-        self.Parameters      = Custom(poly, 'customparams')
+        self.Params          = Custom(poly, 'customparams')
         self.Notices         = Custom(poly, 'notices')
         self.TypedParameters = Custom(poly, 'customtypedparams')
         self.TypedData       = Custom(poly, 'customtypeddata')
@@ -34,6 +34,7 @@ class Controller(Node):
         poly.subscribe(poly.CUSTOMPARAMS,           self.handler_custom_params)
         poly.subscribe(poly.LOGLEVEL,               self.handler_log_level)
         poly.subscribe(poly.CONFIGDONE,             self.handler_config_done)
+        self.Notices.clear()
         poly.ready()
         self.poly.addNode(self, conn_status='ST')
 
@@ -41,9 +42,14 @@ class Controller(Node):
         #serverdata = self.poly._get_server_data()
         LOGGER.info(f"Started Airscape NodeServer {self.poly.serverdata['version']}")
         #LOGGER.debug('ST=%s',self.getDriver('ST'))
-        self.Notices.clear()
         self.setDriver('ST', 1)
         self.setDriver('GV1', 0)
+        configurationHelp = './configdoc.md';
+        if os.path.isfile(configurationHelp):
+	        cfgdoc = markdown2.markdown_path(configurationHelp)
+	        self.poly.setCustomParamsDoc(cfgdoc)
+        else:
+            LOGGER.error(f'config doc not found? {configurationHelp}')
         self.heartbeat(0)
         #self.handler_custom_params()
 
@@ -88,58 +94,48 @@ class Controller(Node):
             LOGGER.info("Setting basic config to WARNING...")
             LOG_HANDLER.set_basic_config(True,logging.WARNING)
 
-    def handler_custom_params(self,params):
-        LOGGER.info(f'params={params}')
-        self.Notices.clear()
-        self.Parameters.load(params)
+    def handler_custom_params(self,data):
+        LOGGER.debug("Enter data={}".format(data))
+        # Our defaults, make sure the exist in case user deletes one
+        params = {
+            'username': 'YourUserName',
+            'password': "YourPassword",
+            'client_id': 'YourClientId',
+            'client_secret': 'YourClientSecret',
+            'current_interval_minutes': 5
+        }
+        if data is None:
+            # Add one.
+            self.Params['username'] = params['username']
+        # Load what we have
+        self.Params.load(data)
 
-        default_username = "YourUserName"
-        default_password = "YourPassword"
-        default_client_id = "YourClientId"
-        default_client_secret = "YourClientSecret"
-        default_current_interval_minutes = 5
-        add_param = False
+        # Assume we are good unless something bad is found
+        st = True
 
-        if self.Parameters['username'] is None:
-            self.Parameters['username'] = default_username
+        # Make sure all the params exist.
+        for param in params:
+            if not param in data:
+                LOGGER.error(f'Add back missing param {param}')
+                self.Params[param] = params[param]
+                # Can't do anything else because we will be called again due to param change
+                return
 
-        if self.Parameters['password'] is None:
-            self.Parameters['password'] = default_password
+        # Make sure they all have a value that is not the default
+        for param in params:
+            if data[param] == "" or (data[param] == params[param] and param != "current_interval_minutes"):
+                msg = f'Please define {param}'
+                LOGGER.error(msg)
+                self.Notices[param] = msg
+                st = False
+            else:
+                self.Notices.delete(param)
 
-        if self.Parameters['client_id'] is None:
-            self.Parameters['client_id'] = default_client_id
-
-        if self.Parameters['client_secret'] is None:
-            self.Parameters['client_secret'] = default_client_secret
-
-        if self.Parameters['current_interval_minutes'] is None:
-            self.Parameters['current_interval_minutes'] = default_current_interval_minutes
-
-        params_ok = True
-        if self.Parameters['username'] == default_username:
-            LOGGER.error(f"check_params: username not defined in customParams, please add it.  Using {self.Parameters['username']}")
-            params_ok = False
-        if self.Parameters['password'] == default_password:
-            LOGGER.error(f"check_params: password not defined in customParams, please add it.  Using {self.Parameters['password']}")
-            params_ok = False
-        if self.Parameters['client_id'] == default_client_id:
-            LOGGER.error(f"check_params: client_id not defined in customParams, please add it.  Using {self.Parameters['client_id']}")
-            params_ok = False
-        if self.Parameters['client_secret'] == default_client_secret:
-            LOGGER.error(f"check_params: client_secret not defined in customParams, please add it.  Using {self.Parameters['client_secret']}")
-            params_ok = False
-
-        # Connect or send a message
-        if params_ok:
+        # Connect if all good
+        if st:
             if self.connect():
                 self.discover()            
             return True
-        else:
-            # This doesn't pass a key to test the old way.
-            msg = 'Please set your information in configuration page'
-            LOGGER.error(msg)
-            self.Notices['config'] = msg
-            return False
 
     def connect(self):
         self.session = Session()
@@ -147,7 +143,7 @@ class Controller(Node):
         self.setDriver('GV1',1)
         try:
             self.auth = pyflume.FlumeAuth(
-                self.Parameters['username'], self.Parameters['password'], self.Parameters['client_id'], self.Parameters['client_secret'], http_session=self.session
+                self.Params['username'], self.Params['password'], self.Params['client_id'], self.Params['client_secret'], http_session=self.session
             )
             self.setDriver('GV1',2)
             LOGGER.info("Flume Auth={}".format(self.auth))
