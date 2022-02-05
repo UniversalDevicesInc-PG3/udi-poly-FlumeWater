@@ -52,7 +52,7 @@ class Flume2Node(Node):
             self.flume.update()
         except (Exception) as err:
             # e = sys.exc_info()[0]
-            LOGGER.error('Error updating device, will try again later: %s', err, exc_info=False)
+            LOGGER.error('Error updating device, will try again later: %s', err, exc_info=True)
             return
         self.setDriver('GV1',myfloat(self.flume.values['current_interval']))
         self.setDriver('GV2',myfloat(self.flume.values['last_60_min']))
