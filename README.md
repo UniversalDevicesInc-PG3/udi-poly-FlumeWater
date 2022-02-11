@@ -6,7 +6,7 @@ Here is how you install this poly.
 
 ## Requirements
 
-Fill out all parameters in the Configuration page.  See [Configuration Page](POLYGLOT_CONFIG.md) for more information.
+Fill out all parameters in the Configuration page.  See [Configuration Page](configdoc.md) for more information.
 
 ## Drivers
 
