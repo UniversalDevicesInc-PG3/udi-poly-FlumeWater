@@ -19,6 +19,9 @@ GV6 - Usage week to date
 GV7 - Usage month to date
 
 ## Revision History
+- 3.0.6: 02/15/2022
+  - Fix log message to report values after querying Flume
+  - Fix controller to not poll all nodes
 - 3.0.5: 02/04/2022
   - Add traceback when there is an error from pyflume to help debug issues
 - 3.0.4: 01/10/2022
