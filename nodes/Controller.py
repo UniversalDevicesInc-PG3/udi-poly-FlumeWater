@@ -63,9 +63,7 @@ class Controller(Node):
             self.heartbeat()
 
     def query(self,command=None):
-        nodes = self.poly.getNodes()
-        for node in nodes:
-            self.nodes[node].reportDrivers()
+         self.reportDrivers()
 
     def delete(self):
         LOGGER.info('I\'m being deleted.')
