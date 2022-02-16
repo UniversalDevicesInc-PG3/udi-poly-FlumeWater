@@ -41,6 +41,8 @@ class Controller(Node):
     def handler_start(self):
         #serverdata = self.poly._get_server_data()
         LOGGER.info(f"Started Airscape NodeServer {self.poly.serverdata['version']}")
+        # Force for now since PG3 is not doing it?
+        self.poly.updateProfile()
         #LOGGER.debug('ST=%s',self.getDriver('ST'))
         self.setDriver('ST', 1)
         self.setDriver('GV1', 0)

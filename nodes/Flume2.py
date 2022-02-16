@@ -80,4 +80,5 @@ class Flume2Node(Node):
         {'driver': 'GV7', 'value': 0, 'uom': 69}, # Month To Date month_to_date
     ]
     commands = {
-            }
+         'QUERY': query,
+    }
