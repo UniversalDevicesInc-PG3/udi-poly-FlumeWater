@@ -63,6 +63,9 @@ class Controller(Node):
     def handler_poll(self, polltype):
         if polltype == 'longPoll':
             self.heartbeat()
+        if int(self.getDriver("GV1")) == 3:
+            LOGGER.error("Authorization previously failed, will try to reconnect now")
+            self.reconnect()
 
     def query(self,command=None):
          self.reportDrivers()
@@ -149,13 +152,13 @@ class Controller(Node):
             LOGGER.info("Flume Auth={}".format(self.auth))
         except Exception as ex:
             self.setDriver('GV1',3)
-            msg = 'Error from PyFlue: {}'.format(ex)
+            msg = 'Error from PyFlume: {}'.format(ex)
             LOGGER.error(msg)
             self.Notices['auth'] = msg
             return False
         except:
             self.setDriver('GV1',3)
-            msg = 'Unknown Error from PyFlue: {}'.format(ex)
+            msg = 'Unknown Error from PyFlume: {}'.format(ex)
             LOGGER.error(msg)
             self.Notices['auth'] = msg
             LOGGER.error(msg,exc_info=True)
@@ -164,6 +167,15 @@ class Controller(Node):
         devices = self.flume_devices.get_devices()
         LOGGER.info("Connecting complete...")
         return True
+
+    def reconnect(self, *args, **kwargs):
+        LOGGER.warning("Closing and reconnecting PyFlume connection...")
+        self.session.close()
+        return self.connect()
+        
+    def set_failed(self, *args, **kwargs):
+        LOGGER.error("Setting Authorization to Failed, will retry on next poll")
+        self.setDriver("GV1",3)
 
     def discover(self, *args, **kwargs):
         cst = int(self.getDriver('GV1'))
@@ -195,6 +207,7 @@ class Controller(Node):
     commands = {
         'QUERY': query,
         'DISCOVER': discover,
+        'SETFAILED': set_failed,
     }
     drivers = [
         {'driver': 'ST',  'value': 1, 'uom':  25},

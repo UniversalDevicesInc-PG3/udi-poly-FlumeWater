@@ -48,12 +48,31 @@ class Flume2Node(Node):
 
     def update(self):
         try:
-            self.flume.update()
+            st = self.flume.update()
+            LOGGER.debug(f'Flume st={st}')
+            self.set_st(1)
+            LOGGER.debug("Values={}".format(self.flume.values))
+        except (ConnectionResetError) as err:
+            LOGGER.debug(f'Flume st={st}')
+            LOGGER.error('ConnectionReset Error updating device, will try again later: %s', err)
+            self.set_st(0)
+        except (TimeoutError) as err:
+            LOGGER.debug(f'Flume st={st}')
+            LOGGER.error('Timeout Error updating device, will try again later: %s', err)
+            self.set_st(0)
         except (Exception) as err:
-            # e = sys.exc_info()[0]
-            LOGGER.error('Error updating device, will try again later: %s', err, exc_info=True)
+            # PyFlume sends this when it has any issues...
+            LOGGER.debug(f'Flume st={st}')
+            LOGGER.error('Error updating device, will try again later: %s', err)
+            msg = re.search('invalid_token',msg)
+            if msg is None:
+                LOGGER.error('Not an invalid token error, please let developer know about the previous error')
+            else:
+                LOGGER.error('It is an invalid_token error')
+                self.controller.set_failed()
+            self.set_st(0)
+            LOGGER.debug("Values={}".format(self.flume.values))
             return
-        LOGGER.debug("Values={}".format(self.flume.values))
         self.setDriver('GV1',myfloat(self.flume.values['current_interval']))
         self.setDriver('GV2',myfloat(self.flume.values['last_60_min']))
         self.setDriver('GV3',myfloat(self.flume.values['last_24_hrs']))
@@ -65,6 +84,10 @@ class Flume2Node(Node):
     def query(self,command=None):
         self.update()
         self.reportDrivers()
+
+    def set_st(self,value):
+        if int(self.getDriver('ST')) != value:
+            self.setDriver('ST',value) 
 
     "Hints See: https://github.com/UniversalDevicesInc/hints"
     hint = [1,2,3,4]

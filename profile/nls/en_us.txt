@@ -3,6 +3,7 @@
 ND-controller-NAME = Flume Water NodeServer Controller
 CMD-ctl-QUERY-NAME = Query
 CMD-ctl-DISCOVER-NAME = Discover
+CMD-ctl-SETFAILED-NAME = Force Authorization Fail
 CMD-ctl-SET_DM-NAME = Set Logger Level
 ST-ctl-GV1-NAME = Authorization Status
 
