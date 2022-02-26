@@ -35,8 +35,16 @@ If you have any questions about these please discuss on the [FlumeWater Subforum
   - Authorized: The Authorization is good
   - Failed: The Authorization Failed
 
-If the polling detects what it thinks is an authorization failure it will set Authorization Status to Failed, and will try to reconnect on the next poll.
+#### Commands
 
+- Query
+  - Query all values of the controller
+- Discover 
+  - Run discover to find Hub and Sensors
+- Force Authorization Fail
+  - Simulates and Authorization Failure to test any monitoring programs
+  - Will re-authorize on next poll
+  
 ### Hub
 
 #### Drivers
@@ -63,6 +71,7 @@ If the polling detects what it thinks is an authorization failure it will set Au
 ## Revision History
 - 3.0.8: 02/26/2022
   - Try to trap connection and authorization problems, see documentation above.
+    - ["Invalid Token" Data stopped being sent to ISY](https://github.com/UniversalDevicesInc-PG3/udi-poly-FlumeWater/issues/6)
 - 3.0.7: 02/15/2022
   - Allow Query on Flume Sensor
 - 3.0.6: 02/15/2022
