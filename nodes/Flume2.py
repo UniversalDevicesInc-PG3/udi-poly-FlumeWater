@@ -62,13 +62,12 @@ class Flume2Node(Node):
             self.set_st(0)
         except (Exception) as err:
             # PyFlume sends this when it has any issues...
-            LOGGER.debug(f'Flume st={st}')
-            LOGGER.error('Error updating device, will try again later: %s', err)
+            LOGGER.error('Error updating device, please let developer know about this error: %s', err)
             msg = re.search('invalid_token',msg)
             if msg is None:
                 LOGGER.error('Not an invalid token error, please let developer know about the previous error')
             else:
-                LOGGER.error('It is an invalid_token error')
+                LOGGER.error('It is an invalid_token error, will re-auth on next poll')
                 self.controller.set_failed()
             self.set_st(0)
             LOGGER.debug("Values={}".format(self.flume.values))
