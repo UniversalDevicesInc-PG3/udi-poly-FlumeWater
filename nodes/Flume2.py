@@ -4,6 +4,7 @@ import sys
 import time
 import urllib3
 import pyflume
+import re
 from datetime import timedelta
 from requests import Session
 

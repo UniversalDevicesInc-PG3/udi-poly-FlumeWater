@@ -18,7 +18,7 @@
         {
             "title": "FlumeWater: a NodeServer for Flume Water Monitor Integration",
             "author": "JimBoCA",
-            "version": "3.0.9",
+            "version": "3.0.10",
             "date": "August 21, 2021",
             "source": "https://github.com/UniversalDevicesInc/udi-poly-flumewater",
             "license": "https://github.com/UniversalDevicesInc/udi-poly-flumewater/master/LICENSE"

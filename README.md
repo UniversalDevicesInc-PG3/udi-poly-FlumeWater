@@ -69,6 +69,9 @@ If you have any questions about these please discuss on the [FlumeWater Subforum
 - GV7 - Usage month to date
 
 ## Revision History
+- 3.0.10: 04/04/2022
+  - Add missing load of re so checking for invalid_token doesn't croak
+  - Force latest udi_interface
 - 3.0.9: 03/16/2022
   - Fix bug in trapping authorization error from previous release.
 - 3.0.8: 02/26/2022
