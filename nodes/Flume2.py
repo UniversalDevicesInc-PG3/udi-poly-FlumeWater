@@ -53,18 +53,14 @@ class Flume2Node(Node):
             LOGGER.debug(f'Flume st={st}')
             self.set_st(1)
             LOGGER.debug("Values={}".format(self.flume.values))
-        except (ConnectionResetError) as err:
+        except (ConnectionResetError, ConnectionError, TimeoutError) as err:
             LOGGER.debug(f'Flume st={st}')
-            LOGGER.error('ConnectionReset Error updating device, will try again later: %s', err)
-            self.set_st(0)
-        except (TimeoutError) as err:
-            LOGGER.debug(f'Flume st={st}')
-            LOGGER.error('Timeout Error updating device, will try again later: %s', err)
+            LOGGER.error(f'Netork error {type(err)} updating device, will try again later: {err}')
             self.set_st(0)
         except (Exception) as err:
             # PyFlume sends this when it has any issues...
-            LOGGER.error('Error updating device, please let developer know about this error: %s', err)
-            msg = re.search('invalid_token',msg)
+            LOGGER.error('Error updating device: %s', err)
+            msg = re.search('invalid_token',str(err))
             if msg is None:
                 LOGGER.error('Not an invalid token error, please let developer know about the previous error')
             else:
