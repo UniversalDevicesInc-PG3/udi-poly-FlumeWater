@@ -34,7 +34,11 @@ class Controller(Node):
         poly.subscribe(poly.CUSTOMPARAMS,           self.handler_custom_params)
         poly.subscribe(poly.LOGLEVEL,               self.handler_log_level)
         poly.subscribe(poly.CONFIGDONE,             self.handler_config_done)
+        poly.subscribe(poly.ADDNODEDONE,            self.handler_add_node_done)
         self.Notices.clear()
+        self.handler_custom_params_st = None
+        self.handler_add_node_done_st = False
+        self.connect_st = 0
         poly.ready()
         self.poly.addNode(self, conn_status='ST')
 
@@ -45,7 +49,6 @@ class Controller(Node):
         self.poly.updateProfile()
         #LOGGER.debug('ST=%s',self.getDriver('ST'))
         self.setDriver('ST', 1)
-        self.setDriver('GV1', 0)
         configurationHelp = './configdoc.md';
         if os.path.isfile(configurationHelp):
 	        cfgdoc = markdown2.markdown_path(configurationHelp)
@@ -55,6 +58,14 @@ class Controller(Node):
         self.heartbeat(0)
         #self.handler_custom_params()
 
+    def handler_add_node_done(self,data):
+        LOGGER.debug(f'enter: {data}')
+        if (data['address'] == self.address):
+            self.handler_add_node_done_st = True
+            # Connect and discover if all good
+            if self.connect():
+                self.discover()
+
     def handler_config_done(self):
         LOGGER.debug(f'enter')
         self.poly.addLogLevel('DEBUG_MODULES',9,'Debug + Modules')
@@ -63,7 +74,8 @@ class Controller(Node):
     def handler_poll(self, polltype):
         if polltype == 'longPoll':
             self.heartbeat()
-        if int(self.getDriver("GV1")) == 3:
+        self.check_config_st()
+        if self.connect_st == 3:
             LOGGER.error("Authorization previously failed, will try to reconnect now")
             self.reconnect()
 
@@ -134,31 +146,52 @@ class Controller(Node):
             else:
                 self.Notices.delete(param)
 
-        # Connect if all good
+        self.handler_custom_params_st = st
+
+        # If add node is done, then our values were edited, so do discover
         if st:
+            # Connect and discover if all good
             if self.connect():
-                self.discover()            
-            return True
+                self.discover()
+
+        LOGGER.debug(f'exit: {self.handler_custom_params_st}')
+
+    def set_connect_st(self,value):
+        LOGGER.debug(f'{value}')
+        self.connect_st = value
+        self.setDriver('GV1',value)
+
+    # Force due to race condition on startup
+    def check_config_st(self):
+        try:
+            if int(self.getDriver('GV1')) != self.connect_st:
+                self.set_connect_st(self.connect_st)
+        except:
+            LOGGER.error("Weird driver value? Will force to zero",exc_info=True)
+            self.set_connect_st(0)
 
     def connect(self):
+        if self.handler_custom_params_st is not True:
+            LOGGER.error(f"Can not connect to Flume until configuration errors are fixed st={self.handler_custom_params_st}")
+            return False
         self.session = Session()
         LOGGER.info("Connecting to Flume...")
-        self.setDriver('GV1',1)
+        self.set_connect_st(1)
         try:
             self.auth = pyflume.FlumeAuth(
                 self.Params['username'], self.Params['password'], self.Params['client_id'], self.Params['client_secret'], http_session=self.session
             )
-            self.setDriver('GV1',2)
+            self.set_connect_st(2)
             LOGGER.info("Flume Auth={}".format(self.auth))
         except Exception as ex:
-            self.setDriver('GV1',3)
+            self.set_connect_st(3)
             msg = 'Error from PyFlume: {}'.format(ex)
             LOGGER.error(msg)
             self.Notices['auth'] = msg
             return False
         except:
-            self.setDriver('GV1',3)
-            msg = 'Unknown Error from PyFlume: {}'.format(ex)
+            self.set_connect_st(3)
+            msg = 'Unknown Error from PyFlume'
             LOGGER.error(msg)
             self.Notices['auth'] = msg
             LOGGER.error(msg,exc_info=True)
@@ -175,10 +208,10 @@ class Controller(Node):
         
     def set_failed(self, *args, **kwargs):
         LOGGER.error("Setting Authorization to Failed, will retry on next poll")
-        self.setDriver("GV1",3)
+        self.set_connect_st(3)
 
     def discover(self, *args, **kwargs):
-        cst = int(self.getDriver('GV1'))
+        cst = self.connect_st
         if cst == 2:
             for device in self.flume_devices.device_list:
                 if device[KEY_DEVICE_TYPE] <= 2:
