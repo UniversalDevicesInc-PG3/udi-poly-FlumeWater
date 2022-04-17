@@ -69,6 +69,8 @@ If you have any questions about these please discuss on the [FlumeWater Subforum
 - GV7 - Usage month to date
 
 ## Revision History
+- 3.0.12: 04/16/2022
+  - More fixes to catching exceptions
 - 3.0.11: 04/13/2022
   - Rework startup sequence due to PG3 race condition for setting drivers.
 - 3.0.10: 04/04/2022
