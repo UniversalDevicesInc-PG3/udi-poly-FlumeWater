@@ -53,7 +53,7 @@ class Flume2Node(Node):
             LOGGER.debug(f'Flume st={st}')
             self.set_st(1)
             LOGGER.debug("Values={}".format(self.flume.values))
-        except (ConnectionResetError, ConnectionError, TimeoutError) as err:
+        except (ConnectionResetError, ConnectionError, TimeoutError, RemoteDisconnected) as err:
             LOGGER.debug(f'Flume st={st}')
             LOGGER.error(f'Netork error {type(err)} updating device, will try again later: {err}')
             self.set_st(0)
