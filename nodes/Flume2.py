@@ -7,6 +7,7 @@ import pyflume
 import re
 from datetime import timedelta
 from requests import Session
+from http.client import RemoteDisconnected
 
 def myfloat(value, prec=4):
     """ round and return float """
