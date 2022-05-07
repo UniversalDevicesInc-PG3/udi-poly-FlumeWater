@@ -38,6 +38,7 @@ class Controller(Node):
         self.Notices.clear()
         self.handler_custom_params_st = None
         self.handler_add_node_done_st = False
+        self._reconnecting = False
         self.connect_st = 0
         poly.ready()
         self.poly.addNode(self, conn_status='ST')
@@ -72,12 +73,14 @@ class Controller(Node):
         LOGGER.debug(f'exit')
 
     def handler_poll(self, polltype):
+        LOGGER.debug(f'enter')
+        self.check_config_st()
         if polltype == 'longPoll':
             self.heartbeat()
-        self.check_config_st()
         if self.connect_st == 3:
             LOGGER.error("Authorization previously failed, will try to reconnect now")
             self.reconnect()
+        LOGGER.debug(f'exit')
 
     def query(self,command=None):
          self.reportDrivers()
@@ -202,10 +205,16 @@ class Controller(Node):
         return True
 
     def reconnect(self, *args, **kwargs):
+        if self._reconnecting:
+            LOGGER.warning("Reconnect already running...")
+            return False
+        self._reconnecting = True
         LOGGER.warning("Closing and reconnecting PyFlume connection...")
         self.session.close()
-        return self.connect()
-        
+        ret = self.connect()
+        self._reconnecting = False
+        return ret
+
     def set_failed(self, *args, **kwargs):
         LOGGER.error("Setting Authorization to Failed, will retry on next poll")
         self.set_connect_st(3)

@@ -7,9 +7,12 @@ class Flume1Node(Node):
         super(Flume1Node, self).__init__(controller.poly, primary, address, name)
         self.device = device
         self.lpfx = '%s:%s' % (address,name)
+        controller.poly.subscribe(controller.poly.START,                  self.handler_start, address) 
 
-    def start(self):
+    def handler_start(self):
+        LOGGER.debug('enter')
         self.setDriver('ST', 1)
+        LOGGER.debug('exit')
 
     def query(self,command=None):
         self.reportDrivers()

@@ -5,9 +5,9 @@ import time
 import urllib3
 import pyflume
 import re
+import http.client, urllib3.exceptions, requests.exceptions
 from datetime import timedelta
 from requests import Session
-from http.client import RemoteDisconnected
 
 def myfloat(value, prec=4):
     """ round and return float """
@@ -23,6 +23,7 @@ class Flume2Node(Node):
         self.device = device
         self.device_id = device['id']
         self.lpfx = '%s:%s' % (address,name)
+        self.flume = False
         controller.poly.subscribe(controller.poly.START,                  self.handler_start, address) 
         controller.poly.subscribe(controller.poly.POLL,                   self.handler_poll)
 
@@ -49,21 +50,22 @@ class Flume2Node(Node):
             self.update()
 
     def update(self):
+        if self.flume is False:
+            LOGGER.error("Flume conneciton not started? handler_start never called or it failed to initialize")
         try:
             st = self.flume.update()
             LOGGER.debug(f'Flume st={st}')
             self.set_st(1)
             LOGGER.debug("Values={}".format(self.flume.values))
-        except (ConnectionResetError, ConnectionError, TimeoutError, RemoteDisconnected) as err:
-            LOGGER.debug(f'Flume st={st}')
+        except (ConnectionResetError, ConnectionError, TimeoutError, http.client.RemoteDisconnected, urllib3.exceptions.ProtocolError, requests.exceptions.ConnectionError) as err:
             LOGGER.error(f'Netork error {type(err)} updating device, will try again later: {err}')
             self.set_st(0)
         except (Exception) as err:
             # PyFlume sends this when it has any issues...
-            LOGGER.error('Error updating device: %s', err)
+            LOGGER.error(f"Error updating device {repr(err)}: {err}")
             msg = re.search('invalid_token',str(err))
             if msg is None:
-                LOGGER.error('Not an invalid token error, please let developer know about the previous error')
+                LOGGER.error('Not an invalid token error, please let developer know about the previous error', exc_info=True)
             else:
                 LOGGER.error('It is an invalid_token error, will re-auth on next poll')
                 self.controller.set_failed()

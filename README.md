@@ -69,6 +69,9 @@ If you have any questions about these please discuss on the [FlumeWater Subforum
 - GV7 - Usage month to date
 
 ## Revision History
+- 3.0.13: 05/07/2022
+  - Trap when reconnect is attempted when already running
+  - Proper trapping of RemoteDisconnected error
 - 3.0.12: 04/16/2022
   - More fixes to catching exceptions
 - 3.0.11: 04/13/2022
