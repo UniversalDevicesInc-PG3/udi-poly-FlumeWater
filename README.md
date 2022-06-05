@@ -69,6 +69,8 @@ If you have any questions about these please discuss on the [FlumeWater Subforum
 - GV7 - Usage month to date
 
 ## Revision History
+- 3.0.14: 06/05/2022
+  - Rework trapping of invalid_token error to completely restart and get a new token
 - 3.0.13: 05/07/2022
   - Trap when reconnect is attempted when already running
   - Proper trapping of RemoteDisconnected error

@@ -25,17 +25,24 @@ class Flume2Node(Node):
         self.lpfx = '%s:%s' % (address,name)
         self.flume = False
         controller.poly.subscribe(controller.poly.START,                  self.handler_start, address) 
-        controller.poly.subscribe(controller.poly.POLL,                   self.handler_poll)
 
     def handler_start(self):
+        LOGGER.debug(f'{self.lpfx}:')
         self.setDriver('ST', 1)
-        self.session = Session()
         try:
             self.scan_interval = timedelta(minutes=int(self.controller.Params['current_interval_minutes']))
         except:
             LOGGER.error("current_interval_minutes configuration parameter {} is not an integer? Using 1.".format(self.controller.Params['current_interval_minutes']))
             self.scan_interval = timedelta(minutes=int(1))
-        LOGGER.info("Using scan interval: {}".format(self.scan_interval))
+        LOGGER.info(f"{self.lpfx}: Using scan interval: {self.scan_interval}")
+        self.update()
+
+    def long_poll(self):
+        self.update()
+
+    def connect(self):
+        LOGGER.info(f"{self.lpfx}: Starting Flume Connection for {self.device_id}")
+        self.session = Session()
         self.flume = pyflume.FlumeData(
             self.controller.auth,
             self.device_id,
@@ -43,22 +50,19 @@ class Flume2Node(Node):
             self.scan_interval,
             http_session=self.session,
         )
-        self.update()
-
-    def handler_poll(self, polltype):
-        if polltype == 'longPoll':
-            self.update()
 
     def update(self):
         if self.flume is False:
-            LOGGER.error("Flume conneciton not started? handler_start never called or it failed to initialize")
+            self.connect()
+            if self.flume is False:
+                return
         try:
             st = self.flume.update()
             LOGGER.debug(f'Flume st={st}')
             self.set_st(1)
             LOGGER.debug("Values={}".format(self.flume.values))
         except (ConnectionResetError, ConnectionError, TimeoutError, http.client.RemoteDisconnected, urllib3.exceptions.ProtocolError, requests.exceptions.ConnectionError) as err:
-            LOGGER.error(f'Netork error {type(err)} updating device, will try again later: {err}')
+            LOGGER.error(f'Network error {type(err)} updating device, will try again later: {err}')
             self.set_st(0)
         except (Exception) as err:
             # PyFlume sends this when it has any issues...
@@ -69,6 +73,7 @@ class Flume2Node(Node):
             else:
                 LOGGER.error('It is an invalid_token error, will re-auth on next poll')
                 self.controller.set_failed()
+                self.flume = False
             self.set_st(0)
             LOGGER.debug("Values={}".format(self.flume.values))
             return

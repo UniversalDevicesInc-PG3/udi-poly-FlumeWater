@@ -14,6 +14,9 @@ class Flume1Node(Node):
         self.setDriver('ST', 1)
         LOGGER.debug('exit')
 
+    def long_poll(self):
+        pass
+    
     def query(self,command=None):
         self.reportDrivers()
 
