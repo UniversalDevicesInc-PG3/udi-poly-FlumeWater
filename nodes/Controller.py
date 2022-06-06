@@ -73,7 +73,7 @@ class Controller(Node):
         LOGGER.debug(f'exit')
 
     def handler_poll(self, polltype):
-        LOGGER.debug(f'enter')
+        LOGGER.debug(f'enter: {polltype}')
         self.check_config_st()
         if polltype == 'longPoll':
             self.heartbeat()
@@ -84,7 +84,7 @@ class Controller(Node):
                 for node in self.poly.nodes():
                     if node.address != self.address:
                         node.long_poll()
-        LOGGER.debug(f'exit')
+        LOGGER.debug(f'exit: {polltype}')
 
     def query(self,command=None):
          self.reportDrivers()
