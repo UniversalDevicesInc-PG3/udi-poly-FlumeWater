@@ -38,7 +38,9 @@ class Flume2Node(Node):
         self.update()
 
     def long_poll(self):
+        LOGGER.debug(f'{self.lpfx}: start')
         self.update()
+        LOGGER.debug(f'{self.lpfx}: done')
 
     def connect(self):
         LOGGER.info(f"{self.lpfx}: Starting Flume Connection for {self.device_id}")

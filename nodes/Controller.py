@@ -80,10 +80,10 @@ class Controller(Node):
             if self.connect_st == 3:
                 LOGGER.error("Authorization previously failed, will try to reconnect now")
                 self.reconnect() 
-                if self.connect_st == 2:
-                    for node in self.poly.nodes():
-                        if node.address != self.address:
-                            node.long_poll()
+            if self.connect_st == 2:
+                for node in self.poly.nodes():
+                    if node.address != self.address:
+                        node.long_poll()
         LOGGER.debug(f'exit')
 
     def query(self,command=None):
