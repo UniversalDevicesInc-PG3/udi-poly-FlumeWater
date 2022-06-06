@@ -62,10 +62,10 @@ class Controller(Node):
     def handler_add_node_done(self,data):
         LOGGER.debug(f'enter: {data}')
         if (data['address'] == self.address):
-            self.handler_add_node_done_st = True
             # Connect and discover if all good
             if self.connect():
                 self.discover()
+            self.handler_add_node_done_st = True
 
     def handler_config_done(self):
         LOGGER.debug(f'enter')
@@ -74,7 +74,8 @@ class Controller(Node):
 
     def handler_poll(self, polltype):
         LOGGER.debug(f'enter: {polltype}')
-        self.check_config_st()
+        if self.handler_add_node_done_st is not True:
+            LOGGER.debug("Waiting for add_node_done to complete")
         if polltype == 'longPoll':
             self.heartbeat()
             if self.connect_st == 3:
@@ -167,15 +168,6 @@ class Controller(Node):
         LOGGER.debug(f'{value}')
         self.connect_st = value
         self.setDriver('GV1',value)
-
-    # Force due to race condition on startup
-    def check_config_st(self):
-        try:
-            if int(self.getDriver('GV1')) != self.connect_st:
-                self.set_connect_st(self.connect_st)
-        except:
-            LOGGER.error("Weird driver value? Will force to zero",exc_info=True)
-            self.set_connect_st(0)
 
     def connect(self):
         if self.handler_custom_params_st is not True:
