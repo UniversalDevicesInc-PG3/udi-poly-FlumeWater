@@ -52,6 +52,13 @@ class Flume2Node(Node):
             self.scan_interval,
             http_session=self.session,
         )
+        LOGGER.debug(f"{self.lpfx}: flume={self.flume}")
+        self.leak_list = pyflume.FlumeLeakList(
+            flume_auth=self.controller.auth,
+            device_id=self.device_id,
+            http_session=self.session,
+        )
+        LOGGER.debug(f"{self.lpfx}: leak_list={self.leak_list}")
 
     def update(self):
         if self.flume is False:
@@ -66,6 +73,7 @@ class Flume2Node(Node):
         except (ConnectionResetError, ConnectionError, TimeoutError, http.client.RemoteDisconnected, urllib3.exceptions.ProtocolError, requests.exceptions.ConnectionError) as err:
             LOGGER.error(f'Network error {type(err)} updating device, will try again later: {err}')
             self.set_st(0)
+            return
         except (Exception) as err:
             # PyFlume sends this when it has any issues...
             LOGGER.error(f"Error updating device {repr(err)}: {err}")
@@ -86,6 +94,10 @@ class Flume2Node(Node):
         self.setDriver('GV5',myfloat(self.flume.values['last_30_days']))
         self.setDriver('GV6',myfloat(self.flume.values['week_to_date']))
         self.setDriver('GV7',myfloat(self.flume.values['month_to_date']))
+        leak_alerts = self.leak_list.get_leaks()
+        LOGGER.debug(f"{self.lpfx}: leak_alerts={leak_alerts}")
+        LOGGER.debug(f"{self.lpfx}: active={leak_alerts[0]['active']}")
+        self.setDriver('GV8',1 if leak_alerts[0]['active'] else 0)
 
     def query(self,command=None):
         self.update()
@@ -107,6 +119,7 @@ class Flume2Node(Node):
         {'driver': 'GV5', 'value': 0, 'uom': 69}, # Last 30 Days last_30_days
         {'driver': 'GV6', 'value': 0, 'uom': 69}, # Week To Date week_to_date
         {'driver': 'GV7', 'value': 0, 'uom': 69}, # Month To Date month_to_date
+        {'driver': 'GV8', 'value': 0, 'uom': 2}, # Leak Detected
     ]
     commands = {
          'QUERY': query,

@@ -33,6 +33,7 @@ CMD-tmplnode-PING-NAME = Ping
 # Flume Sensor
 ND-flume2-NAME = FlumeWater Sensor
 ST-flume2-ST-NAME = Node Status
+ST-flume2-GV8-NAME = Leak Detected
 CMD-tmplnode-PING-NAME = Ping
 ST-flume2-GV1-NAME = Current
 ST-flume2-GV2-NAME = Last 60 Min

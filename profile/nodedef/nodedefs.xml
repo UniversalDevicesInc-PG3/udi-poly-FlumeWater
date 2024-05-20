@@ -44,6 +44,7 @@
                 <st id="GV5" editor="GALLONS"/>
                 <st id="GV6" editor="GALLONS"/>
                 <st id="GV7" editor="GALLONS"/>
+                <st id="GV8" editor="bool"/>
             </sts>
             <cmds>
                 <sends />
