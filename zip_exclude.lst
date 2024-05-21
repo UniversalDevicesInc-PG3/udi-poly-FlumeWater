@@ -5,3 +5,8 @@ logs/*
 zip_exclude.lst
 FlumeWater.zip
 Makefile
+persist
+*.cert
+*.key
+*.pid
+*.log
