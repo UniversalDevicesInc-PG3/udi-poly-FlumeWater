@@ -70,7 +70,7 @@ If you have any questions about these please discuss on the [FlumeWater Subforum
 
 ## Revision History
 - 3.1.0: 05/20/2024
-  - Fix [Possible leak Alert](https://github.com/UniversalDevicesInc-PG3/udi-poly-FlumeWater/issues/8)
+  - Enhancement [Possible leak Alert](https://github.com/UniversalDevicesInc-PG3/udi-poly-FlumeWater/issues/8)
 - 3.0.15: 06/06/2022
   - Fix long_poll not updating values
 - 3.0.14: 06/05/2022
