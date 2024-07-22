@@ -1,5 +1,5 @@
 
-VERSION = "3.1"
+VERSION = "3.1.1"
 
 """ Node classes used by the Wireless Sensor Tags Node Server. """
 

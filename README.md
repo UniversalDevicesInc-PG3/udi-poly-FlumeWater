@@ -69,6 +69,8 @@ If you have any questions about these please discuss on the [FlumeWater Subforum
 - GV7 - Usage month to date
 
 ## Revision History
+- 3.1.1: 07/21/2024
+  - Fix version number
 - 3.1.0: 05/20/2024
   - Enhancement [Possible leak Alert](https://github.com/UniversalDevicesInc-PG3/udi-poly-FlumeWater/issues/8)
 - 3.0.15: 06/06/2022
